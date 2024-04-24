@@ -4,3 +4,7 @@ requires_ansible: '>=2.9.10'
 action_groups:
   all:
     - runcloud_database_user
+    - runcloud_database
+    - runcloud_server
+    - runcloud_system_user
+    - runcloud_web_application

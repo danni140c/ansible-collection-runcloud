@@ -90,6 +90,23 @@ class RunCloudHelper:
 
         return page_data
 
+    def get_server_id(self, server_name=None, server_id=None):
+        servers = self.get_all_pages("servers")
+        for server in servers:
+            if server_name is None and server.get("id", 0) == server_id:
+                break
+
+            if server_id is None and server.get("name", "") == server_name:
+                server_id = server.get("id", None)
+                break
+
+        if server_id is None:
+            self.module.fail_json(
+                msg="Failed to find server by name or ID."
+            )
+
+        return server_id
+
     def get(self, path, data=None):
         return self.send("GET", path, data)
 

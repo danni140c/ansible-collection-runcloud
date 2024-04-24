@@ -87,30 +87,20 @@ class RCDatabaseUser(object):
     def __init__(self, module):
         self.rest = RunCloudHelper(module)
         self.module = module
-        self.wait_timeout = self.module.params.pop("wait_timeout", 120)
+        self.module.params.pop("api_key")
+        self.module.params.pop("api_secret")
         self.server_id = self.module.params.pop("server_id", None)
         self.server_name = self.module.params.pop("server_name", None)
         self.username = self.module.params.pop("username")
         self.password = self.module.params.pop("password")
-        self.module.params.pop("api_key")
-        self.module.params.pop("api_secret")
-
-        servers = self.rest.get_all_pages("servers")
-        for server in servers:
-            if self.server_name is None and server.get("id", 0) == self.server_id:
-                break
-
-            if self.server_id is None and server.get("name", "") == self.server_name:
-                self.server_id = server.get("id", None)
-                break
-
-        if self.server_id is None:
-            self.module.fail_json(
-                msg="Failed to find server by name or ID."
-            )
+        self.server_id = self.rest.get_server_id(
+            server_name=self.server_name, server_id=self.server_id
+        )
 
     def create(self):
-        db_users = self.rest.get_all_pages("servers/%s/databaseusers" % (self.server_id))
+        db_users = self.rest.get_all_pages(
+            "servers/%s/databaseusers" % (self.server_id)
+        )
         changed = False
         db_user = None
 
@@ -136,7 +126,9 @@ class RCDatabaseUser(object):
         )
 
     def delete(self):
-        db_users = self.rest.get_all_pages("servers/%s/databaseusers" % (self.server_id))
+        db_users = self.rest.get_all_pages(
+            "servers/%s/databaseusers" % (self.server_id)
+        )
         changed = False
         db_user = None
 
