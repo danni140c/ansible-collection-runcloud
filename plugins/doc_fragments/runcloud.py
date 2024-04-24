@@ -36,3 +36,17 @@ options:
     type: int
     default: 120
 """
+
+    SERVER_DOCUMENTATION = r"""
+options:
+    server_id:
+        description:
+            - The server ID you want to operate on.
+            - Required if O(server_name) is omitted.
+        type: int
+    server_name:
+        description:
+            - The server name you want to operate on.
+            - Required if O(server_id) is omitted.
+        type: str
+"""

@@ -19,16 +19,6 @@ version_added: "0.0.1"
 description: Manage RunCloud database users through the RunCloud API
 
 options:
-    server_id:
-        description:
-            - The server ID you want to operate on.
-            - Required if O(server_name) is omitted.
-        type: int
-    server_name:
-        description:
-            - The server name you want to operate on.
-            - Required if O(server_id) is omitted.
-        type: str
     state:
         description:
             - The desired state of the database user.
@@ -49,6 +39,7 @@ options:
         type: str
 extends_documentation_fragment:
 - danni140c.runcloud.runcloud.documentation
+- danni140c.runcloud.runcloud.server_documentation
 
 author:
     - Daniel Rasmussen (@danni140c)
@@ -73,8 +64,12 @@ RETURN = r"""
 data:
     description: The original name param that was passed in.
     type: dictionary
-    returned: success and changed when O(state=present)
-    sample: '{"database_user": {"id": 59, "username": "db_user", "created_at": "2024-06-21 07:49:43"}}'
+    returned: changed
+    sample:
+        database_user:
+            id: 59
+            username: db_user
+            created_at: "2024-06-21 07:49:43"
 msg:
     description: Error message.
     type: str
