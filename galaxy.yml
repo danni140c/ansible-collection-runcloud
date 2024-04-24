@@ -1,0 +1,22 @@
+namespace: danni140c
+name: runcloud
+version: 0.0.1
+readme: README.md
+authors:
+  - Daniel Rasmussen <https://github.com/danni140c>
+description: Interact with RunCloud through the RunCloud API.
+license_file: COPYING
+tags:
+  - runcloud
+  - cloud
+  - web
+  - server
+  - control
+  - panel
+  - php
+dependencies: {}
+repository: https://github.com/danni140c/ansible-collection-runcloud
+documentation: https://galaxy.ansible.com/ui/repo/published/danni140c/runcloud
+homepage: https://github.com/danni140c/ansible-collection-runcloud
+issues: https://github.com/danni140c/ansible-collection-runcloud/issues
+build_ignore: []
