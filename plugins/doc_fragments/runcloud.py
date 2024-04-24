@@ -22,13 +22,13 @@ options:
     description:
       - RunCloud API key.
       - "There are several other environment variables which can be used to provide this value."
-      - "i.e., - C(RC_API_KEY) and C(RUNCLOUD_API_KEY)."
+      - "i.e., - E(RC_API_KEY) and C(RUNCLOUD_API_KEY)."
     type: str
   api_secret:
     description:
       - RunCloud API secret.
       - "There are several other environment variables which can be used to provide this value."
-      - "i.e., - C(RC_API_SECRET) and C(RUNCLOUD_API_SECRET)."
+      - "i.e., - E(RC_API_SECRET) and C(RUNCLOUD_API_SECRET)."
     type: str
   timeout:
     description:
