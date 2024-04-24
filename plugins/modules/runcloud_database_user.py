@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # Copyright: Daniel Rasmussen (@danni140c)
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -21,10 +22,12 @@ options:
     server_id:
         description:
             - The server ID you want to operate on.
+            - Required if O(server_name) is omitted.
         type: int
     server_name:
         description:
             - The server name you want to operate on.
+            - Required if O(server_id) is omitted.
         type: str
     state:
         description:
@@ -38,6 +41,7 @@ options:
         description:
             - The name of the database user to operate on.
         type: str
+        required: true
     password:
         description:
             - The password of the database user.
@@ -181,7 +185,7 @@ def main():
     module = AnsibleModule(
         argument_spec=argument_spec,
         required_one_of=(["server_id", "server_name"]),
-        required_if=([("state", "present", ["password"])])
+        required_if=([("state", "present", ["password"])]),
         supports_check_mode=False,
     )
 
