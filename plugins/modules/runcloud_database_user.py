@@ -181,7 +181,7 @@ def main():
     module = AnsibleModule(
         argument_spec=argument_spec,
         required_one_of=(["server_id", "server_name"]),
-        required_if=([("state", "present", ["password"])])
+        required_if=([("state", "present", ["password"])]),
         supports_check_mode=False,
     )
 
