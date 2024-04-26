@@ -38,6 +38,16 @@ class Response(object):
 class RunCloudHelper:
     base_url = "https://manage.runcloud.io/api/v2"
 
+    php_versions = dict(
+        [
+            ("7.4", "php74rc"),
+            ("8.0", "php80rc"),
+            ("8.1", "php81rc"),
+            ("8.2", "php82rc"),
+            ("8.3", "php83rc"),
+        ]
+    )
+
     def __init__(self, module):
         self.module = module
         self.module.params.update({
@@ -86,9 +96,76 @@ class RunCloudHelper:
         while current_page < total_pages:
             current_page = current_page + 1
             page = self.get("%s?page=%s" % (path, current_page)).json
-            page_data.append(page.get("data", []))
+            page_data.extend(page.get("data", []))
 
         return page_data
+
+    # def get_paginated_data(
+    #     self,
+    #     base_url=None,
+    #     data_key_name=None,
+    #     data_per_page=40,
+    #     expected_status_code=200,
+    # ):
+    #     """
+    #     Function to get all paginated data from given URL
+    #     Args:
+    #         base_url: Base URL to get data from
+    #         data_key_name: Name of data key value
+    #         data_per_page: Number results per page (Default: 40)
+    #         expected_status_code: Expected returned code from DigitalOcean (Default: 200)
+    #     Returns: List of data
+
+    #     """
+    #     page = 1
+    #     has_next = True
+    #     ret_data = []
+    #     status_code = None
+    #     response = None
+    #     while has_next or status_code != expected_status_code:
+    #         required_url = "{0}page={1}&per_page={2}".format(
+    #             base_url, page, data_per_page
+    #         )
+    #         response = self.get(required_url)
+    #         status_code = response.status_code
+    #         # stop if any error during pagination
+    #         if status_code != expected_status_code:
+    #             break
+    #         page += 1
+    #         ret_data.extend(response.json[data_key_name])
+    #         try:
+    #             has_next = (
+    #                 "pages" in response.json["links"]
+    #                 and "next" in response.json["links"]["pages"]
+    #             )
+    #         except KeyError:
+    #             # There's a bug in the API docs: GET v2/cdn/endpoints doesn't return a "links" key
+    #             has_next = False
+
+    #     if status_code != expected_status_code:
+    #         msg = "Failed to fetch %s from %s" % (data_key_name, base_url)
+    #         if response:
+    #             msg += " due to error : %s" % response.json["message"]
+    #         self.module.fail_json(msg=msg)
+
+    #     return ret_data
+
+    def get_id(self, url=None, name_key=None, id_key=None, name_value=None, key_value=None):
+        entities = self.get_all_pages(url)
+        for entity in entities:
+            if name_value is None and entity.get(id_key, 0) == key_value:
+                break
+
+            if key_value is None and entity.get(name_key, "") == name_value:
+                key_value = entity.get(id_key, None)
+                break
+
+        if key_value is None:
+            self.module.fail_json(
+                msg="Failed to find server by name or ID."
+            )
+
+        return key_value
 
     def get_server_id(self, server_name=None, server_id=None):
         servers = self.get_all_pages("servers")

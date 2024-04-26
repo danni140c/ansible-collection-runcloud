@@ -45,6 +45,9 @@ class RCDatabase(object):
         self.name = self.module.params.pop("name")
         self.collation = self.module.params.pop("collation")
         self.users = self.module.params.pop("users")
+        self.server_id = self.rest.get_server_id(
+            server_name=self.server_name, server_id=self.server_id
+        )
 
     def create(self):
         databases = self.rest.get_all_pages("servers/%s/databases" % (self.server_id))
@@ -135,7 +138,8 @@ def main():
     )
     module = AnsibleModule(
         argument_spec=argument_spec,
-        supports_check_mode=True,
+        required_one_of=[("server_id", "server_name")],
+        supports_check_mode=False,
     )
 
     core(module)
