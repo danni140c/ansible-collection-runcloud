@@ -35,26 +35,18 @@ from ansible_collections.danni140c.runcloud.plugins.module_utils.runcloud import
 
 
 class RCWebApplication(object):
-    php_versions = dict(
-        [
-            ("7.4", "php74rc"),
-            ("8.0", "php80rc"),
-            ("8.1", "php81rc"),
-            ("8.2", "php82rc"),
-            ("8.3", "php83rc"),
-        ]
-    )
-
     def __init__(self, module):
         self.rest = RunCloudHelper(module)
         self.module = module
         self.wait_timeout = self.module.params.pop("wait_timeout", 120)
-        self.server_id = self.module.params.pop("server_id")
-        self.name = self.module.params.pop("name")
+        self.server_id = self.module.params.pop("server_id", None)
+        self.server_name = self.module.params.pop("server_name", None)
+        self.name = self.module.params.pop("name", None)
         self.domains = self.module.params.pop("domains")
-        self.user = self.module.params.pop("user")
+        self.user_id = self.module.params.pop("user_id", None)
+        self.user_name = self.module.params.pop("user_name", None)
         self.public_path = self.module.params.pop("public_path")
-        self.php_version = RCWebApplication.php_versions.get(
+        self.php_version = RunCloudHelper.php_versions.get(
             self.module.params.pop("php_version")
         )
         self.stack = self.module.params.pop("stack")
@@ -95,10 +87,25 @@ class RCWebApplication(object):
         self.allow_url_fopen = self.module.params.pop("allow_url_fopen")
         self.module.params.pop("api_key")
         self.module.params.pop("api_secret")
+        self.server_id = self.rest.get_id(
+            url="servers",
+            name_key="name",
+            id_key="id",
+            name_value=self.server_name,
+            key_value=self.server_id
+        )
+        self.user_id = self.rest.get_id(
+            url="servers/%s/users" % (self.server_id),
+            name_key="username",
+            id_key="id",
+            name_value=self.user_name,
+            key_value=self.user_id
+        )
 
         if self.open_basedir is None:
+            user = self.rest.get("servers/%s/users/%s" % (self.server_id, self.user_id))
             self.open_basedir = "/home/%s/webapps/%s:/var/lib/php/session:/tmp" % (
-                self.user,
+                user.json.get("username"),
                 self.name,
             )
 
@@ -116,7 +123,7 @@ class RCWebApplication(object):
             request_data = dict(
                 name=self.name,
                 domainName="ansible-test.era.dk",
-                user=self.user,
+                user=self.user_id,
                 publicPath=self.public_path,
                 phpVersion=self.php_version,
                 stack=self.stack,
@@ -169,14 +176,15 @@ def core(module):
 def main():
     argument_spec = RunCloudHelper.runcloud_argument_spec()
     argument_spec.update(
-        server_id=dict(type="int"),
-        server_name=dict(type="str"),
+        server_id=dict(type="str", required=False),
+        server_name=dict(type="str", required=False),
         id=dict(type="int"),
         name=dict(type="str"),
         domains=dict(type="list", elements="str", required=True),
-        user=dict(type="str", required=True),
+        user_id=dict(type="str", required=False),
+        user_name=dict(type="str", required=False),
         public_path=dict(type="str", default=None, required=False),
-        php_version=dict(choices=["7.4", "8.0", "8.1", "8.2", "8.3"], default="8.1"),
+        php_version=dict(choices=["7.4", "8.0", "8.1", "8.2", "8.3"], required=True),
         stack=dict(
             choices=["hybrid", "nativenginx", "customnginx"], default="customnginx"
         ),
@@ -210,20 +218,10 @@ def main():
     )
     module = AnsibleModule(
         argument_spec=argument_spec,
-        required_one_of=(["server_id", "server_name"], ["id", "name"]),
-        required_if=(
-            [
-                (
-                    "process_manager",
-                    "dynamic",
-                    [
-                        "process_manager_start_servers",
-                        "process_manager_min_spare_servers",
-                        "process_manager_max_spare_servers",
-                    ],
-                )
-            ]
-        ),
+        required_one_of=[("server_id", "server_name"), ("id", "name"), ("user_id", "user_name")],
+        required_if=[
+            ("process_manager", "dynamic", ("process_manager_start_servers", "process_manager_min_spare_servers", "process_manager_max_spare_servers"))
+        ],
         supports_check_mode=True,
     )
 

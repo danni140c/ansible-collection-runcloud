@@ -42,7 +42,9 @@ class RCServer(object):
         self.name = self.module.params.pop("name")
         self.ip_address = self.module.params.pop("ip_address")
         self.provider = self.module.params.pop("provider")
-        self.php_version = self.module.params.pop("php_version")
+        self.php_version = RunCloudHelper.php_versions.get(
+            self.module.params.pop("php_version")
+        )
         self.paswordless_login = self.module.params.pop("passwordless_login")
         self.use_dns = self.module.params.pop("use_dns")
         self.prevent_root_login = self.module.params.pop("prevent_root_login")
@@ -155,7 +157,7 @@ def main():
         install_script=dict(type="bool", required=False, default=True),
         ip_address=dict(type="str", required=True),
         provider=dict(type="str", required=False, default="digitalocean"),
-        php_version=dict(type="str", required=False, default="php82rc"),
+        php_version=dict(choices=["7.4", "8.0", "8.1", "8.2", "8.3"], required=True),
         passwordless_login=dict(type="bool", required=False, default=False),
         use_dns=dict(type="bool", required=False, default=False),
         prevent_root_login=dict(type="bool", required=False, default=True),
@@ -164,7 +166,7 @@ def main():
     )
     module = AnsibleModule(
         argument_spec=argument_spec,
-        supports_check_mode=True,
+        supports_check_mode=False,
     )
 
     core(module)

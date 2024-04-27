@@ -167,12 +167,12 @@ def main():
         server_name=dict(type="str", required=False),
         state=dict(choices=["present", "absent"], default="present"),
         username=dict(type="str", required=True),
-        password=dict(type="str", required=False, no_log=True),
+        password=dict(type="str", required=False, no_log=False),
     )
     module = AnsibleModule(
         argument_spec=argument_spec,
-        required_one_of=(["server_id", "server_name"]),
-        required_if=([("state", "present", ["password"])]),
+        required_one_of=[("server_id", "server_name")],
+        required_if=[("state", "present", ("password",))],
         supports_check_mode=False,
     )
 

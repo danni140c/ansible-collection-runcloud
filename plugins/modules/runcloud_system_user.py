@@ -39,11 +39,15 @@ class RCSystemUser(object):
         self.rest = RunCloudHelper(module)
         self.module = module
         self.wait_timeout = self.module.params.pop("wait_timeout", 120)
-        self.server_id = self.module.params.pop("server_id")
+        self.server_id = self.module.params.pop("server_id", None)
+        self.server_name = self.module.params.pop("server_name", None)
         self.username = self.module.params.pop("username")
         self.password = self.module.params.pop("password")
         self.module.params.pop("api_key")
         self.module.params.pop("api_secret")
+        self.server_id = self.rest.get_server_id(
+            server_name=self.server_name, server_id=self.server_id
+        )
 
     def create(self):
         users = self.rest.get_all_pages("servers/%s/users" % (self.server_id))
@@ -105,14 +109,16 @@ def core(module):
 def main():
     argument_spec = RunCloudHelper.runcloud_argument_spec()
     argument_spec.update(
-        server_id=dict(type="str", required=True),
+        server_id=dict(type="str", required=False),
+        server_name=dict(type="str", required=False),
         username=dict(type="str", required=True),
         password=dict(type="str", required=False, no_log=True),
         state=dict(choices=["present", "absent"], default="present"),
     )
     module = AnsibleModule(
         argument_spec=argument_spec,
-        supports_check_mode=True,
+        required_one_of=[("server_id", "server_name")],
+        supports_check_mode=False,
     )
 
     core(module)
