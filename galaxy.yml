@@ -1,6 +1,6 @@
 namespace: danni140c
 name: runcloud
-version: 0.0.7
+version: 0.0.8
 readme: README.md
 authors:
   - Daniel Rasmussen <https://github.com/danni140c>
