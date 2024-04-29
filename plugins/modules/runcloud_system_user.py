@@ -111,9 +111,9 @@ def main():
     argument_spec.update(
         server_id=dict(type="str", required=False),
         server_name=dict(type="str", required=False),
+        state=dict(choices=["present", "absent"], default="present"),
         username=dict(type="str", required=True),
         password=dict(type="str", required=False, no_log=True),
-        state=dict(choices=["present", "absent"], default="present"),
     )
     module = AnsibleModule(
         argument_spec=argument_spec,

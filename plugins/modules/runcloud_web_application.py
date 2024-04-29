@@ -41,8 +41,9 @@ class RCWebApplication(object):
         self.wait_timeout = self.module.params.pop("wait_timeout", 120)
         self.server_id = self.module.params.pop("server_id", None)
         self.server_name = self.module.params.pop("server_name", None)
+        self.id = self.module.params.pop("id", None)
         self.name = self.module.params.pop("name", None)
-        self.domains = self.module.params.pop("domains")
+        self.domains = self.module.params.pop("domains", [])
         self.user_id = self.module.params.pop("user_id", None)
         self.user_name = self.module.params.pop("user_name", None)
         self.public_path = self.module.params.pop("public_path")
@@ -119,10 +120,24 @@ class RCWebApplication(object):
                 webapp = fetched_webapp
                 break
 
+        primary_domain = None
+        for domain in self.domains:
+            if domain.get("type", "") == "primary":
+                primary_domain = domain.get("name", None)
+                break
+
+        if primary_domain is None and len(self.domains) > 0:
+            primary_domain = self.domains[0].get("name", None)
+
+        if primary_domain is None:
+            self.module.fail_json(
+                msg="Failed to find primary domain."
+            )
+
         if webapp is None:
             request_data = dict(
                 name=self.name,
-                domainName="ansible-test.era.dk",
+                domainName=primary_domain,
                 user=self.user_id,
                 publicPath=self.public_path,
                 phpVersion=self.php_version,
@@ -155,6 +170,8 @@ class RCWebApplication(object):
             changed = True
             webapp = response.json
 
+        webapp_id = webapp.get("id")
+
         self.module.exit_json(
             changed=changed,
             data={"webapp": webapp},
@@ -178,15 +195,16 @@ def main():
     argument_spec.update(
         server_id=dict(type="str", required=False),
         server_name=dict(type="str", required=False),
+        state=dict(choices=["present", "absent"], default="present"),
         id=dict(type="int"),
         name=dict(type="str"),
-        domains=dict(type="list", elements="str", required=True),
+        domains=dict(type="list", elements="dict", required=True),
         user_id=dict(type="str", required=False),
         user_name=dict(type="str", required=False),
         public_path=dict(type="str", default=None, required=False),
         php_version=dict(choices=["7.4", "8.0", "8.1", "8.2", "8.3"], required=True),
         stack=dict(
-            choices=["hybrid", "nativenginx", "customnginx"], default="customnginx"
+            choices=["hybrid", "nativenginx", "customnginx"], default="hybrid"
         ),
         stack_mode=dict(choices=["production", "development"], default="production"),
         clickjacking_protection=dict(type="bool", default=True),
@@ -214,7 +232,6 @@ def main():
         upload_max_filesize=dict(type="int", default=256),
         session_gc_maxlifetime=dict(type="int", default=256),
         allow_url_fopen=dict(type="bool", default=True),
-        state=dict(choices=["present", "absent"], default="present"),
     )
     module = AnsibleModule(
         argument_spec=argument_spec,

@@ -133,7 +133,7 @@ def main():
         server_name=dict(type="str", required=False),
         state=dict(choices=["present", "absent"], default="present"),
         name=dict(type="str", required=True),
-        collation=dict(type="str", required=False, default="utf8_danish_ci"),
+        collation=dict(type="str", required=True),
         users=dict(type="list", elements="str"),
     )
     module = AnsibleModule(
