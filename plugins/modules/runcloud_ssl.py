@@ -78,7 +78,7 @@ class RCSsl(object):
             key_value=self.webapp_id,
         )
 
-    def install_basic(self):
+    def install_ssl(self, url):
         request_data = dict(
             provider=self.provider,
             enableHttp=self.enable_http,
@@ -87,7 +87,15 @@ class RCSsl(object):
             authorizationMethod=self.authorization_method,
             environment=self.environment
         )
-        return self.rest.post("servers/%s/webapps/%s/ssl" % (self.server_id, self.webapp_id), data=request_data)
+        return self.rest.post(url, data=request_data)
+
+    def ssl_differs(self, ssl):
+        return ssl.get("enableHttp") != self.enable_http \
+            or ssl.get("enableHsts") != self.enable_hsts \
+            or ssl.get("ssl_protocol_id") != self.protocol \
+            or (ssl.get("staging") == False and self.environment == "staging") \
+            or (ssl.get("staging") == True and self.environment == "live")
+
 
     def create(self):
         changed = False
@@ -109,25 +117,32 @@ class RCSsl(object):
                 )
 
         if self.advanced:
-            self.webapp_id
+            domains = self.rest.get_all_pages("servers/%s/webapps/%s/domains" % (self.server_id, self.webapp_id))
+            for domain in domains:
+                domain_id = domain.get("id")
+                response = self.rest.get("servers/%s/webapps%s/domains/%s/ssl" % (self.server_id, self.webapp_id, domain_id))
+                if response.status_code >= 400:
+                    response = self.install_ssl("servers/%s/webapps/%s/domains/%s/ssl" % (self.server_id, self.webapp_id, domain_id))
+                    ssl = response.json
+                    changed = True
+                elif (self.ssl_differs(ssl)):
+                    self.rest.delete("servers/%s/webapps/%s/domains/%s/ssl/%s" % (self.server_id, self.webapp_id, domain_id, ssl.get("id")))
+                    response = self.install_ssl("servers/%s/webapps/%s/domains/%s/ssl" % (self.server_id, self.webapp_id, domain_id))
+                    ssl = response.json
+                    changed = True
+
         else:
             response = self.rest.get("servers/%s/webapps/%s/ssl" % (self.server_id, self.webapp_id))
             ssl = response.json
             ssl_not_installed = ssl.get("message", "") == "SSL not installed!"
 
             if ssl_not_installed:
-                response = self.install_basic()
+                response = self.install_ssl("servers/%s/webapps/%s/ssl" % (self.server_id, self.webapp_id))
                 ssl = response.json
                 changed = True
-            elif (
-                ssl.get("enableHttp") != self.enable_http \
-                or ssl.get("enableHsts") != self.enable_hsts \
-                or ssl.get("ssl_protocol_id") != self.protocol \
-                or (ssl.get("staging") == False and self.environment == "staging") \
-                or (ssl.get("staging") == True and self.environment == "live")
-            ):
+            elif (self.ssl_differs(ssl)):
                 self.rest.delete("servers/%s/webapps/%s/ssl/%s" % (self.server_id, self.webapp_id, ssl.get("id")))
-                response = self.install_basic()
+                response = self.install_ssl("servers/%s/webapps/%s/ssl" % (self.server_id, self.webapp_id))
                 ssl = response.json
                 changed = True
 
