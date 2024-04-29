@@ -43,7 +43,7 @@ class RCWebApplication(object):
         self.server_name = self.module.params.pop("server_name", None)
         self.id = self.module.params.pop("id", None)
         self.name = self.module.params.pop("name", None)
-        self.domains = self.module.params.pop("domains", [])
+        self.domain_name = self.module.params.pop("domain_name", [])
         self.user_id = self.module.params.pop("user_id", None)
         self.user_name = self.module.params.pop("user_name", None)
         self.public_path = self.module.params.pop("public_path")
@@ -120,24 +120,24 @@ class RCWebApplication(object):
                 webapp = fetched_webapp
                 break
 
-        primary_domain = None
-        for domain in self.domains:
-            if domain.get("type", "") == "primary":
-                primary_domain = domain.get("name", None)
-                break
+        # primary_domain = None
+        # for domain in self.domains:
+        #     if domain.get("type", "") == "primary":
+        #         primary_domain = domain.get("name", None)
+        #         break
 
-        if primary_domain is None and len(self.domains) > 0:
-            primary_domain = self.domains[0].get("name", None)
+        # if primary_domain is None and len(self.domains) > 0:
+        #     primary_domain = self.domains[0].get("name", None)
 
-        if primary_domain is None:
-            self.module.fail_json(
-                msg="Failed to find primary domain."
-            )
+        # if primary_domain is None:
+        #     self.module.fail_json(
+        #         msg="Failed to find primary domain."
+        #     )
 
         if webapp is None:
             request_data = dict(
                 name=self.name,
-                domainName=primary_domain,
+                domainName=self.domainName,
                 user=self.user_id,
                 publicPath=self.public_path,
                 phpVersion=self.php_version,
@@ -198,7 +198,7 @@ def main():
         state=dict(choices=["present", "absent"], default="present"),
         id=dict(type="int"),
         name=dict(type="str"),
-        domains=dict(type="list", elements="dict", required=True),
+        domain_name=dict(type="str", required=True),
         user_id=dict(type="str", required=False),
         user_name=dict(type="str", required=False),
         public_path=dict(type="str", default=None, required=False),
