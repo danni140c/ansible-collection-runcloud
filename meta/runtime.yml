@@ -5,6 +5,7 @@ action_groups:
   all:
     - runcloud_database_user
     - runcloud_database
+    - runcloud_domain
     - runcloud_server
     - runcloud_ssl
     - runcloud_system_user

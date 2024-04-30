@@ -162,7 +162,7 @@ class RunCloudHelper:
 
         if key_value is None:
             self.module.fail_json(
-                msg="Failed to find ID by name or ID."
+                msg="Failed to find ID by name or ID. url=%s, name_key=%s, id_key=%s, name_value=%s, key_value=%s" % (url, name_key, id_key, name_value, key_value)
             )
 
         return key_value

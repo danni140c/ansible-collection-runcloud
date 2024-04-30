@@ -137,7 +137,7 @@ class RCWebApplication(object):
         if webapp is None:
             request_data = dict(
                 name=self.name,
-                domainName=self.domainName,
+                domainName=self.domain_name,
                 user=self.user_id,
                 publicPath=self.public_path,
                 phpVersion=self.php_version,
