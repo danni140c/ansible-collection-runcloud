@@ -77,7 +77,7 @@ class RCServer(object):
 
         if server.get("connected") == False:
             script = self.rest.get("servers/%s/installationscript" % (server_id)).json.get("script")
-            self.module.run_command(script, use_unsafe_shell=True)
+            self.module.run_command(args=script, use_unsafe_shell=True)
             changed = True
 
         if server.get("phpCLIVersion") != self.php_version:

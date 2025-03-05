@@ -40,6 +40,12 @@ class RunCloudHelper:
 
     php_versions = dict(
         [
+            ("5.5", "php55rc"),
+            ("5.6", "php56rc"),
+            ("7.0", "php70rc"),
+            ("7.1", "php71rc"),
+            ("7.2", "php72rc"),
+            ("7.3", "php73rc"),
             ("7.4", "php74rc"),
             ("8.0", "php80rc"),
             ("8.1", "php81rc"),

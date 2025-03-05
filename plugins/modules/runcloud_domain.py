@@ -101,6 +101,10 @@ class RCDomain(object):
         )
 
     def delete(self):
+        self.module.exit_json(
+            changed=False,
+            data={}
+        )
         return None
 
 
